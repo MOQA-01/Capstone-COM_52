@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IoT Monitoring - Jal Jeevan Mission</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .sensor-monitoring-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .sensor-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .sensor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .sensor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sensor-id {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 16px;
+        }
+
+        .sensor-status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-normal {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .sensor-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .sensor-type i {
+            font-size: 18px;
+        }
+
+        .sensor-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 10px 0;
+        }
+
+        .sensor-location {
+            color: #6b7280;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .reset-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .status-message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .status-message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Filter Bar Styles */
+        .filter-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-section label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-section label i {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .filter-section select,
+        .filter-section input {
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            color: #1f2937;
+            background: white;
+            transition: all 0.2s;
+        }
+
+        .filter-section select:focus,
+        .filter-section input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .filter-section input::placeholder {
+            color: #9ca3af;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .filter-btn,
+        .clear-filter-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .filter-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .filter-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .clear-filter-btn {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .clear-filter-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        @media (max-width: 768px) {
+            .filter-bar {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-actions {
+                grid-column: 1 / -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <i class="fas fa-tint"></i>
+                    <div class="sidebar-logo-text">
+                        <h2>Jal Jeevan</h2>
+                        <p>Water Management</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">Main Menu</div>
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-item-text">Dashboard</span>
+                </a>
+                <a href="map.html" class="nav-item">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span class="nav-item-text">Geospatial Map</span>
+                </a>
+                <a href="iot-monitoring.html" class="nav-item active">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span class="nav-item-text">IoT Monitoring</span>
+                    <span class="nav-badge">Live</span>
+                </a>
+                <a href="grievances.html" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span class="nav-item-text">Grievances</span>
+                    <span class="nav-badge">234</span>
+                </a>
+                <a href="analytics.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="nav-item-text">Analytics</span>
+                </a>
+
+                <div class="nav-section-title">Quick Access</div>
+                <a href="citizen-portal.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span class="nav-item-text">Citizen Portal</span>
+                </a>
+
+                <div class="nav-section-title">Information</div>
+                <a href="about.html" class="nav-item">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="nav-item-text">About Project</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Navbar -->
+            <nav class="top-navbar">
+                <div class="navbar-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">IoT Sensor Monitoring</h1>
+                </div>
+                <div class="navbar-right">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search sensors...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <button class="navbar-icon" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge">12</span>
+                    </button>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar">AD</div>
+                        <div class="user-info">
+                            <div class="user-name">Admin User</div>
+                            <div class="user-role">Administrator</div>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+
+                        <!-- User Dropdown Menu -->
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="dropdown-menu">
+                                <a href="index.html" class="dropdown-item">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                    <span>Login</span>
+                                </a>
+                                <div class="dropdown-item logout" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- IoT Monitoring Content -->
+            <div class="dashboard-content">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon primary">
+                                <i class="fas fa-satellite-dish"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="totalSensors">-</div>
+                        <div class="stat-label">Total Sensors</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon success">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="normalSensors">-</div>
+                        <div class="stat-label">Normal Status</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="warningSensors">-</div>
+                        <div class="stat-label">Warning Status</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div class="stat-icon danger">
+                                <i class="fas fa-times-circle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-value" id="criticalSensors">-</div>
+                        <div class="stat-label">Critical Status</div>
+                    </div>
+                </div>
+
+                <!-- Status Message -->
+                <div id="statusMessage" class="status-message info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Loading sensor data...</span>
+                </div>
+
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <div class="filter-section">
+                        <label for="filterType">
+                            <i class="fas fa-filter"></i> Sensor Type
+                        </label>
+                        <select id="filterType" onchange="applyFilters()">
+                            <option value="all">All Types</option>
+                            <option value="flow">Flow</option>
+                            <option value="pressure">Pressure</option>
+                            <option value="level">Level</option>
+                            <option value="quality">Quality</option>
+                            <option value="ph">pH</option>
+                            <option value="turbidity">Turbidity</option>
+                            <option value="chlorine">Chlorine</option>
+                            <option value="temperature">Temperature</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label for="filterStatus">
+                            <i class="fas fa-traffic-light"></i> Status
+                        </label>
+                        <select id="filterStatus" onchange="applyFilters()">
+                            <option value="all">All Status</option>
+                            <option value="normal">Normal</option>
+                            <option value="warning">Warning</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label for="filterLocation">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </label>
+                        <input type="text" id="filterLocation" placeholder="Search location..." oninput="applyFilters()">
+                    </div>
+
+                    <div class="filter-section">
+                        <label for="sortBy">
+                            <i class="fas fa-sort"></i> Sort By
+                        </label>
+                        <select id="sortBy" onchange="applyFilters()">
+                            <option value="id">Sensor ID</option>
+                            <option value="type">Type</option>
+                            <option value="status">Status</option>
+                            <option value="value">Value</option>
+                            <option value="location">Location</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-section">
+                        <label for="sortOrder">
+                            <i class="fas fa-arrow-down-short-wide"></i> Order
+                        </label>
+                        <select id="sortOrder" onchange="applyFilters()">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="filter-btn" onclick="applyFilters()">
+                            <i class="fas fa-check"></i> Apply
+                        </button>
+                        <button class="clear-filter-btn" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="controls">
+                    <button class="refresh-btn" onclick="loadData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Data
+                    </button>
+                    <button class="reset-btn" onclick="resetJJMData()">
+                        <i class="fas fa-redo"></i>
+                        Reset to Default Data
+                    </button>
+                    <button class="refresh-btn" onclick="exportSensorExcel()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <i class="fas fa-file-excel"></i>
+                        Download Excel Report
+                    </button>
+                </div>
+
+                <!-- Sensor Grid -->
+                <div id="sensorGrid" class="sensor-monitoring-grid">
+                    <!-- Sensors will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- SheetJS library for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <script src="js/data.js"></script>
+    <script src="js/iot-simulator.js"></script>
+    <script>
+        // Sidebar toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+
+        // User Profile Dropdown Toggle
+        const userProfile = document.getElementById('userProfile');
+        const userDropdown = document.getElementById('userDropdown');
+
+        userProfile.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('show');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userProfile.contains(e.target)) {
+                userDropdown.classList.remove('show');
+            }
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear session storage
+                sessionStorage.clear();
+                localStorage.clear();
+
+                // Redirect to login page
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Get sensor icon based on type
+        function getSensorIcon(type) {
+            const icons = {
+                'flow': 'fa-water',
+                'pressure': 'fa-gauge-high',
+                'level': 'fa-arrows-up-down',
+                'quality': 'fa-flask',
+                'ph': 'fa-droplet',
+                'turbidity': 'fa-smog',
+                'chlorine': 'fa-prescription-bottle',
+                'temperature': 'fa-temperature-half'
+            };
+            return icons[type.toLowerCase()] || 'fa-sensor';
+        }
+
+        // Load sensor data
+        function loadData() {
+            const statusDiv = document.getElementById('statusMessage');
+            const sensorGrid = document.getElementById('sensorGrid');
+
+            try {
+                const sensors = DataManager.getSensors();
+
+                if (sensors.length === 0) {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.innerHTML = '<i class="fas fa-times-circle"></i><span>No sensors found! Click "Reset to Default Data" to load dummy data.</span>';
+                    sensorGrid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-satellite-dish"></i>
+                            <h3>No Sensors Available</h3>
+                            <p>Click "Reset to Default Data" to load sample sensor data.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Calculate statistics
+                const total = sensors.length;
+                const normal = sensors.filter(s => s.status === 'normal').length;
+                const warning = sensors.filter(s => s.status === 'warning').length;
+                const critical = sensors.filter(s => s.status === 'critical').length;
+
+                // Update stats
+                document.getElementById('totalSensors').textContent = total;
+                document.getElementById('normalSensors').textContent = normal;
+                document.getElementById('warningSensors').textContent = warning;
+                document.getElementById('criticalSensors').textContent = critical;
+
+                // Show success message
+                statusDiv.className = 'status-message success';
+                statusDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>Successfully loaded ${total} sensors! (Normal: ${normal}, Warning: ${warning}, Critical: ${critical})</span>`;
+
+                // Display first 50 sensors
+                const displaySensors = sensors.slice(0, 50);
+                sensorGrid.innerHTML = displaySensors.map(sensor => `
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <span class="sensor-id">${sensor.id}</span>
+                            <span class="sensor-status-badge status-${sensor.status}">${sensor.status}</span>
+                        </div>
+                        <div class="sensor-type">
+                            <i class="fas ${getSensorIcon(sensor.type)}"></i>
+                            <span>${sensor.type.toUpperCase()}</span>
+                        </div>
+                        <div class="sensor-value">${sensor.current_value} <small style="font-size: 16px; color: #6b7280;">${sensor.unit}</small></div>
+                        <div class="sensor-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>${sensor.location}</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                console.log('Loaded sensors:', sensors);
+            } catch (error) {
+                statusDiv.className = 'status-message error';
+                statusDiv.innerHTML = `<i class="fas fa-times-circle"></i><span>Error loading sensor data: ${error.message}</span>`;
+                console.error('Error:', error);
+            }
+        }
+
+        // Store all sensors globally for filtering
+        let allSensors = [];
+
+        // Apply filters to sensor data
+        function applyFilters() {
+            if (allSensors.length === 0) {
+                return;
+            }
+
+            const filterType = document.getElementById('filterType').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterLocation = document.getElementById('filterLocation').value.toLowerCase();
+            const sortBy = document.getElementById('sortBy').value;
+            const sortOrder = document.getElementById('sortOrder').value;
+
+            // Filter sensors
+            let filteredSensors = allSensors.filter(sensor => {
+                const typeMatch = filterType === 'all' || sensor.type.toLowerCase() === filterType;
+                const statusMatch = filterStatus === 'all' || sensor.status === filterStatus;
+                const locationMatch = filterLocation === '' || sensor.location.toLowerCase().includes(filterLocation);
+                return typeMatch && statusMatch && locationMatch;
+            });
+
+            // Sort sensors
+            filteredSensors.sort((a, b) => {
+                let aVal, bVal;
+
+                switch(sortBy) {
+                    case 'id':
+                        aVal = a.id;
+                        bVal = b.id;
+                        break;
+                    case 'type':
+                        aVal = a.type;
+                        bVal = b.type;
+                        break;
+                    case 'status':
+                        const statusOrder = { 'critical': 0, 'warning': 1, 'normal': 2 };
+                        aVal = statusOrder[a.status];
+                        bVal = statusOrder[b.status];
+                        break;
+                    case 'value':
+                        aVal = parseFloat(a.current_value);
+                        bVal = parseFloat(b.current_value);
+                        break;
+                    case 'location':
+                        aVal = a.location;
+                        bVal = b.location;
+                        break;
+                    default:
+                        aVal = a.id;
+                        bVal = b.id;
+                }
+
+                if (sortOrder === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+
+            // Display filtered sensors
+            displaySensors(filteredSensors);
+
+            // Update status message
+            const statusDiv = document.getElementById('statusMessage');
+            const total = filteredSensors.length;
+            statusDiv.className = 'status-message success';
+            statusDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>Showing ${total} of ${allSensors.length} sensors</span>`;
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('filterType').value = 'all';
+            document.getElementById('filterStatus').value = 'all';
+            document.getElementById('filterLocation').value = '';
+            document.getElementById('sortBy').value = 'id';
+            document.getElementById('sortOrder').value = 'asc';
+
+            displaySensors(allSensors.slice(0, 50));
+
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.className = 'status-message success';
+            statusDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>Successfully loaded ${allSensors.length} sensors!</span>`;
+        }
+
+        // Display sensors in the grid
+        function displaySensors(sensors) {
+            const sensorGrid = document.getElementById('sensorGrid');
+            const displaySensors = sensors.slice(0, 50); // Limit to 50
+
+            sensorGrid.innerHTML = displaySensors.map(sensor => `
+                <div class="sensor-card">
+                    <div class="sensor-header">
+                        <span class="sensor-id">${sensor.id}</span>
+                        <span class="sensor-status-badge status-${sensor.status}">${sensor.status}</span>
+                    </div>
+                    <div class="sensor-type">
+                        <i class="fas ${getSensorIcon(sensor.type)}"></i>
+                        <span>${sensor.type.toUpperCase()}</span>
+                    </div>
+                    <div class="sensor-value">${sensor.current_value} <small style="font-size: 16px; color: #6b7280;">${sensor.unit}</small></div>
+                    <div class="sensor-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${sensor.location}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modified loadData function to store sensors globally
+        function loadData() {
+            const statusDiv = document.getElementById('statusMessage');
+            const sensorGrid = document.getElementById('sensorGrid');
+
+            try {
+                const sensors = DataManager.getSensors();
+
+                if (sensors.length === 0) {
+                    statusDiv.className = 'status-message error';
+                    statusDiv.innerHTML = '<i class="fas fa-times-circle"></i><span>No sensors found! Click "Reset to Default Data" to load dummy data.</span>';
+                    sensorGrid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1 / -1;">
+                            <i class="fas fa-satellite-dish"></i>
+                            <h3>No Sensors Available</h3>
+                            <p>Click "Reset to Default Data" to load sample sensor data.</p>
+                        </div>
+                    `;
+                    allSensors = [];
+                    return;
+                }
+
+                // Store sensors globally
+                allSensors = sensors;
+
+                // Calculate statistics
+                const total = sensors.length;
+                const normal = sensors.filter(s => s.status === 'normal').length;
+                const warning = sensors.filter(s => s.status === 'warning').length;
+                const critical = sensors.filter(s => s.status === 'critical').length;
+
+                // Update stats
+                document.getElementById('totalSensors').textContent = total;
+                document.getElementById('normalSensors').textContent = normal;
+                document.getElementById('warningSensors').textContent = warning;
+                document.getElementById('criticalSensors').textContent = critical;
+
+                // Show success message
+                statusDiv.className = 'status-message success';
+                statusDiv.innerHTML = `<i class="fas fa-check-circle"></i><span>Successfully loaded ${total} sensors! (Normal: ${normal}, Warning: ${warning}, Critical: ${critical})</span>`;
+
+                // Display first 50 sensors
+                displaySensors(sensors);
+
+                console.log('Loaded sensors:', sensors);
+            } catch (error) {
+                statusDiv.className = 'status-message error';
+                statusDiv.innerHTML = `<i class="fas fa-times-circle"></i><span>Error loading sensor data: ${error.message}</span>`;
+                console.error('Error:', error);
+            }
+        }
+
+        // Load data on page load
+        window.addEventListener('DOMContentLoaded', loadData);
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+
+        // Export sensor data to Excel
+        function exportSensorExcel() {
+            try {
+                const sensors = DataManager.getSensors();
+
+                if (sensors.length === 0) {
+                    alert('⚠️ No sensor data available to export. Please load data first.');
+                    return;
+                }
+
+                // Prepare data for Excel with specific columns: Region, Area, Type, Status
+                const exportData = sensors.map(sensor => ({
+                    'Region': sensor.region || 'N/A',
+                    'Area': sensor.area || 'N/A',
+                    'Type': sensor.type ? sensor.type.charAt(0).toUpperCase() + sensor.type.slice(1) : 'Unknown',
+                    'Status': sensor.status ? sensor.status.charAt(0).toUpperCase() + sensor.status.slice(1) : 'Unknown',
+                    'Sensor ID': sensor.id,
+                    'Current Value': sensor.current_value,
+                    'Unit': sensor.unit,
+                    'Location': sensor.location || 'N/A',
+                    'Last Update': sensor.last_update ? new Date(sensor.last_update).toLocaleString('en-IN') : 'N/A'
+                }));
+
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+
+                // Create worksheet from data
+                const ws = XLSX.utils.json_to_sheet(exportData);
+
+                // Set column widths
+                const colWidths = [
+                    { wch: 18 }, // Region
+                    { wch: 22 }, // Area
+                    { wch: 15 }, // Type
+                    { wch: 12 }, // Status
+                    { wch: 12 }, // Sensor ID
+                    { wch: 15 }, // Current Value
+                    { wch: 10 }, // Unit
+                    { wch: 30 }, // Location
+                    { wch: 20 }  // Last Update
+                ];
+                ws['!cols'] = colWidths;
+
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'Sensor Data');
+
+                // Create summary sheet grouped by Region
+                const summaryByRegion = [];
+                const regions = ['North Zone', 'South Zone', 'East Zone', 'West Zone', 'Central Zone'];
+
+                regions.forEach(region => {
+                    const regionSensors = sensors.filter(s => s.region === region);
+                    summaryByRegion.push({
+                        'Region': region,
+                        'Total Sensors': regionSensors.length,
+                        'Normal': regionSensors.filter(s => s.status === 'normal').length,
+                        'Warning': regionSensors.filter(s => s.status === 'warning').length,
+                        'Critical': regionSensors.filter(s => s.status === 'critical').length
+                    });
+                });
+
+                const wsSummary = XLSX.utils.json_to_sheet(summaryByRegion);
+                wsSummary['!cols'] = [
+                    { wch: 18 }, // Region
+                    { wch: 15 }, // Total Sensors
+                    { wch: 12 }, // Normal
+                    { wch: 12 }, // Warning
+                    { wch: 12 }  // Critical
+                ];
+                XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary by Region');
+
+                // Create detailed breakdown by Type
+                const summaryByType = [];
+                const types = ['flow', 'pressure', 'pH', 'turbidity', 'chlorine', 'level'];
+
+                types.forEach(type => {
+                    const typeSensors = sensors.filter(s => s.type === type);
+                    summaryByType.push({
+                        'Type': type.charAt(0).toUpperCase() + type.slice(1),
+                        'Total': typeSensors.length,
+                        'Normal': typeSensors.filter(s => s.status === 'normal').length,
+                        'Warning': typeSensors.filter(s => s.status === 'warning').length,
+                        'Critical': typeSensors.filter(s => s.status === 'critical').length
+                    });
+                });
+
+                const wsType = XLSX.utils.json_to_sheet(summaryByType);
+                wsType['!cols'] = [
+                    { wch: 15 }, // Type
+                    { wch: 12 }, // Total
+                    { wch: 12 }, // Normal
+                    { wch: 12 }, // Warning
+                    { wch: 12 }  // Critical
+                ];
+                XLSX.utils.book_append_sheet(wb, wsType, 'Summary by Type');
+
+                // Create pivot-style summary
+                const pivotData = [
+                    { '': '', 'North Zone': '', 'South Zone': '', 'East Zone': '', 'West Zone': '', 'Central Zone': '', 'Total': '' }
+                ];
+
+                types.forEach(type => {
+                    const row = {
+                        '': type.charAt(0).toUpperCase() + type.slice(1)
+                    };
+                    regions.forEach(region => {
+                        row[region] = sensors.filter(s => s.type === type && s.region === region).length;
+                    });
+                    row['Total'] = sensors.filter(s => s.type === type).length;
+                    pivotData.push(row);
+                });
+
+                // Add totals row
+                const totalRow = { '': 'Total' };
+                regions.forEach(region => {
+                    totalRow[region] = sensors.filter(s => s.region === region).length;
+                });
+                totalRow['Total'] = sensors.length;
+                pivotData.push(totalRow);
+
+                const wsPivot = XLSX.utils.json_to_sheet(pivotData);
+                wsPivot['!cols'] = [
+                    { wch: 15 }, // Type column
+                    { wch: 15 }, // North Zone
+                    { wch: 15 }, // South Zone
+                    { wch: 15 }, // East Zone
+                    { wch: 15 }, // West Zone
+                    { wch: 15 }, // Central Zone
+                    { wch: 12 }  // Total
+                ];
+                XLSX.utils.book_append_sheet(wb, wsPivot, 'Pivot Summary');
+
+                // Generate filename with date
+                const date = new Date().toISOString().split('T')[0];
+                const filename = `JJM_IoT_Sensors_${date}.xlsx`;
+
+                // Save file
+                XLSX.writeFile(wb, filename);
+
+                // Show success message
+                alert(`✅ Excel file exported successfully!\n\nFilename: ${filename}\nTotal Sensors: ${sensors.length}\n\nThe file includes 4 sheets:\n• Sensor Data - Full sensor list with Region, Area, Type, Status\n• Summary by Region - Statistics per region\n• Summary by Type - Statistics per sensor type\n• Pivot Summary - Cross-tabulation of Type vs Region`);
+            } catch (error) {
+                console.error('Export error:', error);
+                alert('❌ Error exporting to Excel: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

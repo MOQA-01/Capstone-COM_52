@@ -1,0 +1,5 @@
+::1 - - [01/Dec/2025 19:13:11] "GET /grievances.html HTTP/1.1" 304 -
+::1 - - [01/Dec/2025 19:13:11] "GET /js/grievances.js HTTP/1.1" 200 -
+::1 - - [01/Dec/2025 19:14:05] "GET / HTTP/1.1" 200 -
+::1 - - [01/Dec/2025 19:14:11] "GET /iot-monitoring.html HTTP/1.1" 200 -
+::1 - - [01/Dec/2025 19:14:11] "GET /js/iot-simulator.js HTTP/1.1" 200 -
